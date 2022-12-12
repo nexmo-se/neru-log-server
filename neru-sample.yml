@@ -1,0 +1,22 @@
+project:
+  name: neru
+instance:
+  name: assets
+  runtime: nodejs16
+  region: aws.use1
+  application-id: 5f710c44-807b-4917-a5a7-b80cb4ff1826
+  configurations:
+    section1:
+      key1: this is an example
+    section2:
+      key2: 42
+  entrypoint:
+    - node
+    - .
+debug:
+  name: neru
+  entrypoint:
+    - nodemon
+    - node
+    - .
+    - --inspect
