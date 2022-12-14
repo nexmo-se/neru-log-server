@@ -62,25 +62,42 @@ app.get('/', (req, res) => {
   res.status(200).send({ logFile: logFile, logFileExists: fileExists });
 });
 
-let logCounter = 0;
-// APPEND TO TODAY'S LOG FILE. WILL SAVE AS E.G. Wed Dec 14 2022.txt
-// https://api-us.vonage.com/v1/neru/i/neru-4f2ff535-neru-assets/append?line=This is a new entry
+let logCounter;
+// APPEND TO TODAY'S LOG FILE. WILL SAVE AS E.G. Mon Dec 12 2022.txt
+// https://neru-4f2ff535-neru-assets.use1.serverless.vonage.com/append?line=just an entry <<<< TEST THIS
 app.get('/append', (req, res) => {
   logCounter++;
-  console.log('/append:', { logCounter: logCounter, 'req.query': req.query });
+  console.log('/append:', { 'req.query': req.query, logCounter: logCounter });
   let logFile;
   (async () => {
     try {
-      if (logCounter) {
+      if (logCounter % 1000) {
         currentDate = new Date().toDateString();
         logFile = `${cwd}/${currentDate}.txt`;
         const content = JSON.stringify(req.query);
         // WRITE THE REQUEST TO A LOGFILE
-        const log = fs.createWriteStream(logFile, { flags: 'a' });
-        log.write(`${content}\n`);
-        log.end();
-
-        res.status(200).send({ success: 'New line added', logFile: logFile });
+        await fs.appendFile(logFile, content, (err) => {
+          if (err) {
+            console.log('Error adding content:', err);
+            res.status(400).send({ 'Error adding content': err });
+          } else {
+            console.log('Added new content');
+          }
+        });
+        // ADD A NEW LINE
+        await fs.appendFile(logFile, '\n', (err) => {
+          if (err) {
+            console.log('Error adding new line:', err);
+            res
+              .status(400)
+              .send({ 'Error adding new line:': err, logFile: logFile });
+          } else {
+            console.log('New line added');
+            res
+              .status(200)
+              .send({ success: 'New line added', logFile: logFile });
+          }
+        });
       } // END IF 0
     } catch (err) {
       console.log('Error writing to file:', err);
@@ -90,7 +107,7 @@ app.get('/append', (req, res) => {
 });
 
 // VIEW LOG FILE BY DATE
-// https://api-us.vonage.com/v1/neru/i/neru-4f2ff535-neru-assets/viewlog?date=Wed Dec 14 2022
+// https://neru-4f2ff535-neru-assets.use1.serverless.vonage.com/viewlog?date=Mon Dec 12 2022
 app.get('/viewlog', (req, res, next) => {
   let { date } = req.query;
   console.log('/viewlog:', date);
@@ -110,7 +127,7 @@ app.get('/viewlog', (req, res, next) => {
 });
 
 // SEND BACK LOG FILE BY DATE
-// https://api-us.vonage.com/v1/neru/i/neru-4f2ff535-neru-assets/download?date=Wed Dec 14 2022
+// https://neru-4f2ff535-neru-assets.use1.serverless.vonage.com/download?date=Mon Dec 12 2022
 app.get('/download', (req, res) => {
   let { date } = req.query;
   console.log('/download:', date);

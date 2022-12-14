@@ -1,5 +1,18 @@
 # neru-log-server
 
+UPDATED: Sending 1000 requests per second with a total of XX,000 requests using Locust was causing a log to not
+be written correctly. Solution was to `fs.createWriteStream` and to only write to log after avery 1000 requests.
+
+```js
+// example
+if (requestLog % 1000) fs.createWriteStream...
+```
+
+> Need to test without the the modulus condition.
+
+ALSO: a `keep-alive` interval was needed to keep logs persistant. This is because, when the
+NeRu server went to sleep. The log file is trashed.
+
 The log file is named using the date in format `Mon Dec 12 2022`.
 
 ## Run the demo
