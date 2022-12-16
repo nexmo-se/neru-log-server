@@ -3,7 +3,6 @@ import express from 'express';
 import fs from 'fs';
 import axios from 'axios';
 import os from 'os';
-import short from 'short-uuid';
 
 const app = express();
 const port = process.env.NERU_APP_PORT || 5001;
@@ -14,11 +13,8 @@ const assets = new Assets(session);
 const state = new State(session);
 
 const currentDate = new Date().toDateString();
-// console.log('ℹ️ currentDate:', currentDate);
-const uuid = short.generate();
-console.log('ℹ️ uuid:', uuid);
-const filePath = os.tmpdir() + `/${uuid} ${currentDate}.log`;
-console.log('ℹ️ filePath:', filePath);
+console.log('ℹ️ currentDate:', currentDate);
+const filePath = os.tmpdir() + `/${currentDate}.log`;
 
 app.get('/_/health', async (req, res) => {
   res.sendStatus(200);
@@ -83,9 +79,6 @@ app.get('/test-stop', async (req, res) => {
     console.log('setTesting:', setTesting);
     isTesting = await state.get('testing');
     console.log('ℹ️ /test-start: testing:', isTesting);
-
-    // SAVE THE LOG
-    await assets.uploadFiles([filePath], '/mutant').execute();
   } catch (error) {
     console.log('❌ /test-start error:', error);
   }
@@ -107,18 +100,18 @@ app.get('/test-state', async (req, res) => {
 
 // https://api-us.vonage.com/v1/neru/i/neru-4f2ff535-neru-assets/append?line=This is a new entry
 app.get('/append', async (req, res, next) => {
-  let content;
-  let log;
   try {
-    content = JSON.stringify(req.query);
+    let content = JSON.stringify(req.query);
     // WRITE THE REQUEST TO A LOGFILE
-    log = fs.createWriteStream(filePath, { flags: 'a' });
+    const log = fs.createWriteStream(filePath, { flags: 'a' });
     log.write(`${content}\n`);
     log.end();
 
+    await assets.uploadFiles([filePath], '/mutant').execute();
+
     res.send(filePath).status(200);
-  } catch (error) {
-    res.send(error.message).status(200);
+  } catch (err) {
+    res.send(err.message).status(200);
   }
 });
 
