@@ -63,9 +63,3 @@ Global Flags:
   -f, --filename string     File contains the Neru manifest to apply
       --region string       Neru platform region
 ```
-
-Log files are deleted from NeRu as soon as it NeRu goes to sleep or when the `keep-alive` interval has ended.
-A solution would be to write to mongodb, maybe `mongo-morgan`.
-
-UPDATED: Sending 1000 requests per second with a total of XX,000 requests using Locust was causing a log to not
-be written correctly. Solution was to `fs.createWriteStream` and to only write to log after avery 1000 requests.
