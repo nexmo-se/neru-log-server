@@ -28,36 +28,38 @@ app.get('/', async (req, res, next) => {
   res.send('hello world').status(200);
 });
 
-if (process.env.DEBUG == 'true') {
-  console.log('🚀 Debug');
-} else {
-  console.log('🚀 Deploy');
-  // PREVENTS THE ASSETS LOGS TO BE OVER WRITTEN
-  // KEEP NERU INSTANCE ALIVE ****************************************** START
-  let count = 0;
-  let interval = setInterval(() => {
-    axios
-      .get(`http://${process.env.INSTANCE_SERVICE_NAME}.neru/keep-alive`)
-      .then((resp) => {
-        if (count % 1000) {
-          console.log('keep-alive:', resp.data);
-        }
-      })
-      .catch((err) => console.log('interval error: ', err));
-  }, 1000);
+const URL =
+  process.env.ENDPOINT_URL_SCHEME + '/' + process.env.INSTANCE_SERVICE_NAME;
 
-  // KEEPS NERU ALIVE FOR 6000 SECONDS (110 MINUTES).
-  app.get('/keep-alive', (req, res) => {
-    count++;
-    // console.log(`keep alive ${count}`);
-    if (count > 6600) {
-      clearInterval(interval);
-      console.log('interval cleared');
-    }
-    res.send(`OK ${count}`);
-  });
-  // KEEP NERU INSTANCE ALIVE ***************************************** END
+if (process.env.DEBUG == 'true') {
+  console.log('🚀 Debug URL:', URL);
+} else {
+  console.log('🚀 Deploy URL:', URL);
 }
+
+// PREVENTS THE ASSETS LOGS TO BE OVER WRITTEN
+let count = 0;
+let interval = setInterval(() => {
+  axios
+    .get(`http://${process.env.INSTANCE_SERVICE_NAME}.neru/keep-alive`)
+    .then((resp) => {
+      if (count % 1000) {
+        console.log('keep-alive:', resp.data);
+      }
+    })
+    .catch((err) => console.log('interval error: ', err));
+}, 1000);
+
+// KEEPS NERU ALIVE FOR 6000 SECONDS (110 MINUTES).
+app.get('/keep-alive', (req, res) => {
+  count++;
+  // console.log(`keep alive ${count}`);
+  if (count > 6600) {
+    clearInterval(interval);
+    console.log('interval cleared');
+  }
+  res.send(`OK ${count}`);
+});
 
 // START TESTING: WHEN HIT THE STATE PROVIDER IS SET TO TRUE ON ALL INSTANCES
 app.get('/test-start', async (req, res) => {

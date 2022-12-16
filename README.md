@@ -1,5 +1,14 @@
 # neru-log-server
 
+> This VCR App requires atleast neru-apha version `3.3.2. If not please uninstall neru-alpha and reinstall library.
+
+```js
+npm uinstall neru-alpha
+npm install neru-alpha
+npm install short-uuid
+
+```
+
 ## Run demo
 
 1. Check if Instance is running
